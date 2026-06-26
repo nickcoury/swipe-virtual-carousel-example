@@ -42,6 +42,7 @@ function addToStart() {
   }
   minIndex -= ITEMS_TO_ADD;
   carousel.scrollLeft = prevScroll + ITEMS_TO_ADD * itemWidth();
+  lastScrollLeft = carousel.scrollLeft;
   pruneEnd();
 
   isUpdating = false;
@@ -56,6 +57,7 @@ function addToEnd() {
   }
   maxIndex += ITEMS_TO_ADD;
   pruneStart();
+  lastScrollLeft = carousel.scrollLeft;
 
   isUpdating = false;
 }
@@ -103,3 +105,36 @@ edgeObserver.observe(carousel, { childList: true });
 
 renderInitial();
 observeEdges();
+
+// --- Touch-aware proactive edge loading ---
+
+let isTouching = false;
+let lastScrollLeft = carousel.scrollLeft;
+const TOUCH_EDGE_BUFFER = 1.5;
+
+carousel.addEventListener('touchstart', () => { isTouching = true; }, { passive: true });
+carousel.addEventListener('touchend', () => { isTouching = false; }, { passive: true });
+carousel.addEventListener('touchcancel', () => { isTouching = false; }, { passive: true });
+
+carousel.addEventListener('scroll', () => {
+  if (isUpdating) return;
+
+  if (!isTouching) {
+    lastScrollLeft = carousel.scrollLeft;
+    return;
+  }
+
+  const direction = carousel.scrollLeft - lastScrollLeft;
+  lastScrollLeft = carousel.scrollLeft;
+
+  const s = carousel.scrollLeft;
+  const cw = carousel.clientWidth;
+  const totalW = (maxIndex - minIndex + 1) * itemWidth();
+  const threshold = TOUCH_EDGE_BUFFER * itemWidth();
+
+  if (direction < 0 && s < threshold) {
+    addToStart();
+  } else if (direction > 0 && s + cw > totalW - threshold) {
+    addToEnd();
+  }
+}, { passive: true });
