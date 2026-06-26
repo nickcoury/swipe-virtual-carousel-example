@@ -1,12 +1,12 @@
 const ITEMS_TO_ADD = 5;
-const PRUNE_THRESHOLD = 10;
-const OBSERVER_MARGIN = '0px 400px 0px 400px';
+const PRUNE_THRESHOLD = 15;
+const OBSERVER_MARGIN = '0px 800px 0px 800px';
 
 const carousel = document.getElementById('carousel');
 const itemWidth = () => window.innerWidth;
 
-let minIndex = -5;
-let maxIndex = 5;
+let minIndex = -10;
+let maxIndex = 10;
 let isUpdating = false;
 
 function dbg(p) { window.__dbgUpdate && window.__dbgUpdate(p); }
@@ -85,16 +85,15 @@ function pruneStart() {
   if (isTouching) return;
   const removed = [];
   while (minIndex + PRUNE_THRESHOLD < maxIndex - PRUNE_THRESHOLD) {
-    const el = carousel.firstChild;
-    const idx = Number(el.dataset.index);
-    removed.push(idx);
-    el.remove();
+    removed.push(carousel.firstChild);
     minIndex++;
-    reflow();
-    carousel.scrollLeft -= itemWidth();
   }
   if (removed.length) {
-    log(`-L ${removed.join(',')}  min→${minIndex}`, 'remove');
+    removed.forEach(el => el.remove());
+    reflow();
+    carousel.scrollLeft -= removed.length * itemWidth();
+    const idxs = removed.map(el => Number(el.dataset.index));
+    log(`-L ${idxs.join(',')}  min→${minIndex}`, 'remove');
     dbg({ minIdx: minIndex, domCount: carousel.children.length });
   }
 }
@@ -103,14 +102,13 @@ function pruneEnd() {
   if (isTouching) return;
   const removed = [];
   while (maxIndex - PRUNE_THRESHOLD > minIndex + PRUNE_THRESHOLD) {
-    const el = carousel.lastChild;
-    const idx = Number(el.dataset.index);
-    removed.push(idx);
-    el.remove();
+    removed.push(carousel.lastChild);
     maxIndex--;
   }
   if (removed.length) {
-    log(`-R ${removed.join(',')}  max→${maxIndex}`, 'remove');
+    removed.forEach(el => el.remove());
+    const idxs = removed.map(el => Number(el.dataset.index));
+    log(`-R ${idxs.join(',')}  max→${maxIndex}`, 'remove');
     dbg({ maxIdx: maxIndex, domCount: carousel.children.length });
   }
 }
