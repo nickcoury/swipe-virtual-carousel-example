@@ -1,12 +1,12 @@
-const ITEMS_TO_ADD = 3;
-const PRUNE_THRESHOLD = 5;
+const ITEMS_TO_ADD = 5;
+const PRUNE_THRESHOLD = 10;
 const OBSERVER_MARGIN = '0px 400px 0px 400px';
 
 const carousel = document.getElementById('carousel');
 const itemWidth = () => window.innerWidth;
 
-let minIndex = -3;
-let maxIndex = 3;
+let minIndex = -5;
+let maxIndex = 5;
 let isUpdating = false;
 
 function createItem(index) {
@@ -34,6 +34,7 @@ function addToStart() {
   if (isUpdating) return;
   isUpdating = true;
 
+  carousel.style.scrollSnapType = 'none';
   const prevScroll = carousel.scrollLeft;
 
   for (let i = 1; i <= ITEMS_TO_ADD; i++) {
@@ -45,6 +46,7 @@ function addToStart() {
   lastScrollLeft = carousel.scrollLeft;
   pruneEnd();
 
+  carousel.style.scrollSnapType = '';
   isUpdating = false;
 }
 
@@ -52,6 +54,7 @@ function addToEnd() {
   if (isUpdating) return;
   isUpdating = true;
 
+  carousel.style.scrollSnapType = 'none';
   for (let i = 1; i <= ITEMS_TO_ADD; i++) {
     carousel.appendChild(createItem(maxIndex + i));
   }
@@ -59,10 +62,12 @@ function addToEnd() {
   pruneStart();
   lastScrollLeft = carousel.scrollLeft;
 
+  carousel.style.scrollSnapType = '';
   isUpdating = false;
 }
 
 function pruneStart() {
+  if (isTouching) return;
   while (minIndex + PRUNE_THRESHOLD < maxIndex - PRUNE_THRESHOLD) {
     carousel.firstChild.remove();
     minIndex++;
@@ -71,6 +76,7 @@ function pruneStart() {
 }
 
 function pruneEnd() {
+  if (isTouching) return;
   while (maxIndex - PRUNE_THRESHOLD > minIndex + PRUNE_THRESHOLD) {
     carousel.lastChild.remove();
     maxIndex--;
@@ -110,7 +116,7 @@ observeEdges();
 
 let isTouching = false;
 let lastScrollLeft = carousel.scrollLeft;
-const TOUCH_EDGE_BUFFER = 1.5;
+const TOUCH_EDGE_BUFFER = 2.5;
 
 carousel.addEventListener('touchstart', () => { isTouching = true; }, { passive: true });
 carousel.addEventListener('touchend', () => { isTouching = false; }, { passive: true });
