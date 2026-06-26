@@ -28,7 +28,8 @@ body {
 }
 
 .item {
-  scroll-snap-align: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   width: 100vw;
   height: 100vh;
   flex-shrink: 0;
