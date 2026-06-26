@@ -27,26 +27,29 @@ function renderInitial() {
   for (let i = minIndex; i <= maxIndex; i++) {
     carousel.appendChild(createItem(i));
   }
+  reflow();
   centerScroll();
+}
+
+function reflow() {
+  void carousel.offsetHeight;
 }
 
 function addToStart() {
   if (isUpdating) return;
   isUpdating = true;
 
-  carousel.style.scrollSnapType = 'none';
   const prevScroll = carousel.scrollLeft;
 
   for (let i = 1; i <= ITEMS_TO_ADD; i++) {
-    const el = createItem(minIndex - i);
-    carousel.prepend(el);
+    carousel.prepend(createItem(minIndex - i));
   }
   minIndex -= ITEMS_TO_ADD;
+  reflow();
   carousel.scrollLeft = prevScroll + ITEMS_TO_ADD * itemWidth();
   lastScrollLeft = carousel.scrollLeft;
   pruneEnd();
 
-  carousel.style.scrollSnapType = '';
   isUpdating = false;
 }
 
@@ -54,7 +57,6 @@ function addToEnd() {
   if (isUpdating) return;
   isUpdating = true;
 
-  carousel.style.scrollSnapType = 'none';
   for (let i = 1; i <= ITEMS_TO_ADD; i++) {
     carousel.appendChild(createItem(maxIndex + i));
   }
@@ -62,7 +64,6 @@ function addToEnd() {
   pruneStart();
   lastScrollLeft = carousel.scrollLeft;
 
-  carousel.style.scrollSnapType = '';
   isUpdating = false;
 }
 
@@ -71,6 +72,7 @@ function pruneStart() {
   while (minIndex + PRUNE_THRESHOLD < maxIndex - PRUNE_THRESHOLD) {
     carousel.firstChild.remove();
     minIndex++;
+    reflow();
     carousel.scrollLeft -= itemWidth();
   }
 }
