@@ -54,7 +54,6 @@ function addToStart() {
   reflow();
   carousel.scrollLeft = prevScroll + ITEMS_TO_ADD * itemWidth();
   lastScrollLeft = carousel.scrollLeft;
-  pruneEnd();
   log(`+L ${newIndices.join(',')}  min→${minIndex}`, 'add');
 
   isUpdating = false;
@@ -73,7 +72,6 @@ function addToEnd() {
     carousel.appendChild(createItem(idx));
   }
   maxIndex += ITEMS_TO_ADD;
-  pruneStart();
   lastScrollLeft = carousel.scrollLeft;
   log(`+R ${newIndices.join(',')}  max→${maxIndex}`, 'add');
 
