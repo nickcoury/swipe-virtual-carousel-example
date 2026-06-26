@@ -3,7 +3,7 @@ const PRUNE_THRESHOLD = 5;
 const OBSERVER_MARGIN = '0px 400px 0px 400px';
 
 const carousel = document.getElementById('carousel');
-const itemWidth = () => window.innerWidth * 0.5;
+const itemWidth = () => window.innerWidth;
 
 let minIndex = -3;
 let maxIndex = 3;
