@@ -5,8 +5,8 @@ const OBSERVER_MARGIN = '0px 800px 0px 800px';
 const carousel = document.getElementById('carousel');
 const itemWidth = () => window.innerWidth;
 
-let minIndex = -10;
-let maxIndex = 10;
+let minIndex = -5;
+let maxIndex = 5;
 let isUpdating = false;
 
 function dbg(p) { window.__dbgUpdate && window.__dbgUpdate(p); }
@@ -82,7 +82,6 @@ function addToEnd() {
 }
 
 function pruneStart() {
-  if (isTouching) return;
   const removed = [];
   while (minIndex + PRUNE_THRESHOLD < maxIndex - PRUNE_THRESHOLD) {
     removed.push(carousel.firstChild);
@@ -99,7 +98,6 @@ function pruneStart() {
 }
 
 function pruneEnd() {
-  if (isTouching) return;
   const removed = [];
   while (maxIndex - PRUNE_THRESHOLD > minIndex + PRUNE_THRESHOLD) {
     removed.push(carousel.lastChild);
@@ -143,29 +141,21 @@ renderInitial();
 observeEdges();
 dbg({
   minIdx: minIndex, maxIdx: maxIndex, domCount: carousel.children.length,
-  touching: false, updating: false,
-  scrollLeft: 0, scrollRight: 0, totalW: 0, threshold: 0, dir: '—',
+  updating: false, scrollLeft: 0, scrollRight: 0, totalW: 0, threshold: 0, dir: '—',
 });
 
-// --- Touch-aware proactive edge loading ---
+// --- Edge detection (runs on every scroll event) ---
 
-let isTouching = false;
 let lastScrollLeft = carousel.scrollLeft;
 const TOUCH_EDGE_BUFFER = 2.5;
 
 carousel.addEventListener('touchstart', () => {
-  isTouching = true;
-  dbg({ touching: true });
   log('touch DOWN', 'touch');
 }, { passive: true });
 carousel.addEventListener('touchend', () => {
-  isTouching = false;
-  dbg({ touching: false });
   log('touch UP', 'touch');
 }, { passive: true });
 carousel.addEventListener('touchcancel', () => {
-  isTouching = false;
-  dbg({ touching: false });
   log('touch CANCEL', 'touch');
 }, { passive: true });
 
@@ -177,22 +167,16 @@ carousel.addEventListener('scroll', () => {
   const totalW = (maxIndex - minIndex + 1) * itemWidth();
   const threshold = TOUCH_EDGE_BUFFER * itemWidth();
   const sr = s + cw;
+  const direction = s - lastScrollLeft;
+  lastScrollLeft = s;
 
   dbg({
     scrollLeft: Math.round(s),
     scrollRight: Math.round(sr),
     totalW: Math.round(totalW),
     threshold: Math.round(threshold),
+    dir: direction > 0 ? '→' : direction < 0 ? '←' : '—',
   });
-
-  if (!isTouching) {
-    lastScrollLeft = s;
-    return;
-  }
-
-  const direction = s - lastScrollLeft;
-  lastScrollLeft = s;
-  dbg({ dir: direction > 0 ? '→' : direction < 0 ? '←' : '—' });
 
   const nearL = direction < 0 && s < threshold;
   const nearR = direction > 0 && sr > totalW - threshold;
