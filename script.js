@@ -109,6 +109,26 @@ function pruneEnd() {
   }
 }
 
+function isSnapped() {
+  const w = itemWidth();
+  const snapped = Math.round(carousel.scrollLeft / w) * w;
+  return Math.abs(carousel.scrollLeft - snapped) <= 1;
+}
+
+function pruneIfIdle() {
+  if (isUpdating) return;
+  if (!isSnapped()) {
+    window.__pruneTimer = setTimeout(pruneIfIdle, 100);
+    return;
+  }
+  const before = carousel.children.length;
+  pruneStart();
+  pruneEnd();
+  if (carousel.children.length !== before) {
+    log(`prune done  dom: ${before} → ${carousel.children.length}  range: ${minIndex}..${maxIndex}`, 'warn');
+  }
+}
+
 const observer = new IntersectionObserver((entries) => {
   for (const entry of entries) {
     if (isUpdating) return;
@@ -190,13 +210,5 @@ carousel.addEventListener('scroll', () => {
   }
 
   clearTimeout(window.__pruneTimer);
-  window.__pruneTimer = setTimeout(() => {
-    if (isUpdating) return;
-    const before = carousel.children.length;
-    pruneStart();
-    pruneEnd();
-    if (carousel.children.length !== before) {
-      log(`prune done  dom: ${before} → ${carousel.children.length}  range: ${minIndex}..${maxIndex}`, 'warn');
-    }
-  }, 400);
+  window.__pruneTimer = setTimeout(pruneIfIdle, 400);
 }, { passive: true });
