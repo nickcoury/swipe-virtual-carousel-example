@@ -188,4 +188,15 @@ carousel.addEventListener('scroll', () => {
   } else if (nearR) {
     addToEnd();
   }
+
+  clearTimeout(window.__pruneTimer);
+  window.__pruneTimer = setTimeout(() => {
+    if (isUpdating) return;
+    const before = carousel.children.length;
+    pruneStart();
+    pruneEnd();
+    if (carousel.children.length !== before) {
+      log(`prune done  dom: ${before} → ${carousel.children.length}  range: ${minIndex}..${maxIndex}`, 'warn');
+    }
+  }, 400);
 }, { passive: true });
